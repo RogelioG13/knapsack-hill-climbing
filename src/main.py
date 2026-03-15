@@ -1,50 +1,89 @@
 import time
+import os
+import statistics
+import matplotlib.pyplot as plt
 from random import randint
+
 from leer_instancia import Leer_Instancia
 from hill_climbing import Hill_Climbing
 
-inicio_global = time.time()
+
+CARPETA_RESULTS = "results"
+
+
+if not os.path.exists(CARPETA_RESULTS):
+    os.makedirs(CARPETA_RESULTS)
+
 
 cantidad, profits, weights, capacidad = Leer_Instancia.leer_instancia()
 
-resultados = []
-tiempos = []
 
-mejor_global = float("-inf")
-mejor_solucion = None
+algoritmos = {
+    "Hill Climbing": "hill_climbing",
+    "Vecinos Aleatorios": "hill_climbing_vecinos_aleatorios"
+}
 
-for i in range(30):
 
-    inicio = [randint(0,1) for _ in range(cantidad)]
+resultados_alg = {}
 
-    start = time.time()
-    solucion, evaluacion = Hill_Climbing(cantidad, profits, weights, capacidad, inicio).hill_climbing()
-    end = time.time()
 
-    tiempo = end - start
+for nombre, metodo in algoritmos.items():
 
-    resultados.append(evaluacion)
-    tiempos.append(tiempo)
+    print(f"\n===== {nombre} =====")
 
-    print(f"Ejecucion {i+1}: Evaluacion={evaluacion}  Tiempo={tiempo:.4f}")
+    resultados = []
+    tiempos = []
 
-    if evaluacion > mejor_global:
-        mejor_global = evaluacion
-        mejor_solucion = solucion
+    inicio_metodo = time.time()
 
-fin_global = time.time()
-total_global = fin_global - inicio_global
+    for i in range(30):
 
-print(f"\nResumen")
+        inicio = [randint(0,1) for _ in range(cantidad)]
 
-print(f"Mejor evaluacion: {max(resultados)}")
-print(f"Peor evaluacion: {min(resultados)}")
-print(f"Promedio evaluacion: {sum(resultados)/len(resultados)}")
+        start = time.time()
 
-print(f"\nTiempo promedio: {sum(tiempos)/len(tiempos):.4f}")
-print(f"Tiempo minimo: {min(tiempos):.4f}")
-print(f"Tiempo maximo: {max(tiempos):.4f}")
-print(f"Tiempo total: {total_global:.4f}")
+        hc = Hill_Climbing(cantidad, profits, weights, capacidad, inicio)
 
-print(f"\nMejor solucion encontrada:")
-print(f"{mejor_solucion}")
+        solucion, evaluacion = getattr(hc, metodo)()
+
+        end = time.time()
+
+        tiempo = end - start
+
+        resultados.append(evaluacion)
+        tiempos.append(tiempo)
+
+        print(f"Ejecucion {i+1}: Evaluacion={evaluacion:.2f}  Tiempo={tiempo:.4f}")
+
+
+    fin_metodo = time.time()
+    tiempo_total = fin_metodo - inicio_metodo
+
+
+    print("\nResumen")
+
+    print(f"Mejor evaluacion: {max(resultados):.2f}")
+    print(f"Peor evaluacion: {min(resultados):.2f}")
+    print(f"Promedio evaluacion: {sum(resultados)/len(resultados):.2f}")
+    print(f"Desviacion estandar evaluacion: {statistics.stdev(resultados):.2f}")
+
+    print()
+
+    print(f"Tiempo promedio: {sum(tiempos)/len(tiempos):.4f}")
+    print(f"Tiempo minimo: {min(tiempos):.4f}")
+    print(f"Tiempo maximo: {max(tiempos):.4f}")
+    print(f"Desviacion estandar tiempo: {statistics.stdev(tiempos):.4f}")
+
+    print(f"\nTiempo total metodo: {tiempo_total:.4f}")
+
+    resultados_alg[nombre] = resultados
+
+
+plt.boxplot(resultados_alg.values())
+plt.xticks(range(1, len(resultados_alg)+1), resultados_alg.keys())
+plt.title("Comparacion de algoritmos")
+plt.ylabel("Evaluacion")
+
+ruta = os.path.join(CARPETA_RESULTS, "boxplot_resultados.png")
+
+plt.savefig(ruta)

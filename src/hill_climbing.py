@@ -1,4 +1,4 @@
-from random import random
+import random
 class Hill_Climbing:
     def __init__(self, cantidad, profits, weights, capacidad, solucion_inicial):
         self.cantidad = cantidad
@@ -70,7 +70,30 @@ class Hill_Climbing:
 
             j += 1
 
-        return solucion_actual, profit_actual
-
+        return solucion_actual, evaluacion_actual
     
+    def hill_climbing_vecinos_aleatorios(self):
+        solucion_actual = self.solucion_inicial
+        evaluacion_actual, profit_actual, weight_actual = self.evaluar_solucion_inicial(solucion_actual)
+        j = 0
+        buenos_vecinos = []
+        while j < 50:
 
+            buenos_vecinos = []
+
+            for i in range(self.cantidad):
+                vecino, nuevo_valor = self.generar_vecino(solucion_actual, i)
+                evaluacion_vecino, profit_vecino, weight_vecino = self.evaluar_vecino(nuevo_valor, weight_actual, profit_actual, i)
+                if evaluacion_vecino > evaluacion_actual:
+                    buenos_vecinos.append([vecino, evaluacion_vecino, profit_vecino, weight_vecino])
+            if len(buenos_vecinos) == 0:
+                break
+            vecino = random.choice(buenos_vecinos)
+            solucion_actual = vecino[0]
+            evaluacion_actual = vecino[1]
+            profit_actual = vecino[2]
+            weight_actual = vecino[3]
+
+            j += 1
+
+        return solucion_actual, evaluacion_actual
