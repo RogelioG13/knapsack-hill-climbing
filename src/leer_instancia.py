@@ -5,7 +5,6 @@ class Leer_Instancia:
         ARCHIVO_INSTANCIA = "data/instancia_mochila.txt"
         with open(ARCHIVO_INSTANCIA, 'r') as file:
             cantidad = int(next(file).strip())
-            print(cantidad)
             for i in range(cantidad):
                 _, profit, weight = map(float, next(file).split())
                 profits.append(profit)
